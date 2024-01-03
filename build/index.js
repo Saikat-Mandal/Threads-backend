@@ -15,27 +15,47 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const server_1 = require("@apollo/server");
 const express4_1 = require("@apollo/server/express4");
 const express_1 = __importDefault(require("express"));
+const db_1 = require("./lib/db");
 function init() {
     return __awaiter(this, void 0, void 0, function* () {
         const app = (0, express_1.default)();
         app.use(express_1.default.json());
+        // graphql server
         const server = new server_1.ApolloServer({
             typeDefs: `
             type Query {
                 hello : String
                 say(name : String) : String
             }
+            type Mutation {
+                createUser(firstname : String! , lastname : String! , email : String!  , password : String!) : Boolean
+            }
         `,
             resolvers: {
                 Query: {
                     hello: () => "hello i am a graphql server",
                     say: (_, { name }) => `hello ${name} nigga`
+                },
+                Mutation: {
+                    createUser: (_, { firstname, lastname, email, password }) => __awaiter(this, void 0, void 0, function* () {
+                        yield db_1.prismaClient.user.create({
+                            data: {
+                                firstname,
+                                lastname,
+                                email,
+                                password,
+                                salt: 'ramdom_salt'
+                            }
+                        });
+                        return true;
+                    })
                 }
             }
         });
         app.get("/", (req, res) => {
             res.json("hello from graphql");
         });
+        // listening to server 
         yield server.start();
         app.use('/graphql', (0, express4_1.expressMiddleware)(server));
         app.listen(4000, () => console.log("port started on 4000"));
