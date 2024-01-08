@@ -1,12 +1,13 @@
 import { ApolloServer } from '@apollo/server';
 import { prismaClient } from '../lib/db';
 import { User } from './users/index';
+require('dotenv').config()
 async function createApolloGraphqlServer() {
     // graphql server
     const server = new ApolloServer({
         typeDefs: `
         type Query {
-            hello : String!
+            ${User.queries}
         }
         type Mutation {
            ${User.mutations}
